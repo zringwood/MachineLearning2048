@@ -6,19 +6,17 @@ def printboard() :
     for line in board:
         print(line)
 #Adds the next new tile to the board.
-#This code is quite inefficient but it works fine for a 4x4 grid.
 def addnewtile():
     global board
-    i = randint(0,3)
-    j = randint(0,3)
-    while board[i][j] != 0:
-        i = randint(0,3)
-        j = randint(0,3)
-    if random() < 0.75:
-        board[i][j] = 2
-    else :
-        board[i][j] = 4
-    printboard()
+    #Iterate over the board, add all zeros to an array, then pick two randomly.
+    zeroes = []
+    for i in range(len(board)) :
+        for j in range(len(board)) :
+            if board[i][j] == 0:
+                zeroes.append([i,j])
+    #We now have an array of all zero coordinates on the board.
+    index = randint(0,len(zeroes)-1)
+    board[zeroes[index][0]][zeroes[index][1]] = 2
 #sets everything to none except two cells, which are either 2 or 4
 def newgame() :
     global board
@@ -26,15 +24,16 @@ def newgame() :
     addnewtile()
     addnewtile()
 #Helper method, clears the 0s from the board
-def removezeros():
-    global board
+def removezeros(currboard):
+    board = [row[:] for row in currboard]
     for line in board:
         while line.count(0) != 0:
             line.remove(0)
-def updateleft():
-    global board
+    return board
+def updateleft(currboard):
+    board = [row[:] for row in currboard]
     #first, we remove all the zeros.
-    removezeros()
+    removezeros(board)
     #this allows us to add adjacent cells without worrying about zeros in between
     for i in range(len(board)):
         for j in range(len(board[i])-1):
@@ -47,10 +46,11 @@ def updateleft():
     for line in board:
         while len(line) < 4 :
             line.append(0)
-def updateright():
-    global board
+    return board
+def updateright(currboard):
+    board = [row[:] for row in currboard]
     #first, we remove all the zeros.
-    removezeros()
+    removezeros(board)
     #this allows us to add adjacent cells without worrying about zeros in between
     for i in range(len(board)):
         for j in range(len(board[i])-1):
@@ -62,25 +62,24 @@ def updateright():
     for i in range(len(board)):
         while len(board[i]) < 4 :
             board[i] = [0] + board[i]
-
-def transposeboard():
-    global board
+    return board
+def transposeboard(currboard):
     newboard = [[0] * 4 for i in range(4)]
     for i in range(4):
         for j in range(4):
-            newboard[i][j] = board[j][i]
-    board = newboard
+            newboard[i][j] = currboard[j][i]
+    return newboard
+    
 #to perform updates up or down, we just transpose the board and then update either left or right.
-def updatedown():
-    transposeboard()
-    updateright()
-    transposeboard()
-def updateup():
-    transposeboard()
-    updateleft()
-    transposeboard()
-def haspossiblemoves():
-    global board
+def updatedown(currboard):
+    board = transposeboard(currboard)
+    board = updateright(board)
+    return transposeboard(board)
+def updateup(currboard):
+    board = transposeboard(currboard)
+    board = updateleft(board)
+    return transposeboard(currboard)
+def haspossiblemoves(board):
     for i in range(len(board)):
         for j in range(len(board[i])):
             #It's possible to do these three if statements in one like but it looks very awkward.
@@ -95,22 +94,20 @@ def haspossiblemoves():
  
             
 newgame()
-while(haspossiblemoves()):
+while(haspossiblemoves(board)):
     boardsave = board
     while(board == boardsave):
-        nextmove = randint(0,3)
-        if nextmove == 0 :
-            updatedown()
-        elif nextmove == 1:
-            updateleft()
-        elif nextmove == 2:
-            updateright()
-        elif nextmove == 3:
-            updateup()
+        nextmove = random()
+        if nextmove < 0.4 :
+            board = updatedown(board)
+        elif nextmove < 0.8:
+            board = updateleft(board)
+        elif nextmove < 0.9:
+            board = updateright(board)
+        else:
+            board = updateup(board)
     addnewtile()
 printboard()
-print(haspossiblemoves())
-
 
 
 
