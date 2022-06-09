@@ -1,7 +1,4 @@
 from random import *
-import neat
-
-
 class Game:
     def __init__(self, boardsize):
         self.boardsize = boardsize
